@@ -57,6 +57,14 @@ void Terminal::print(String str, uint8_t mode, uint8_t R, uint8_t G, uint8_t B) 
 
 	Graphics::setColor(255, 255, 255);
 
+	if(mode != 2)
+		Graphics::drawQuad(
+			(char_position[0] * Graphics::font_size[0]) + 1,
+			(char_position[1] * Graphics::font_size[1]),
+			((char_position[0] + 1) * Graphics::font_size[0]) - 1,
+			((char_position[1] + 1) * Graphics::font_size[1]) - 1
+		);
+
 }
 
 void Terminal::listen(char key, uint8_t mode) {
@@ -66,10 +74,9 @@ void Terminal::listen(char key, uint8_t mode) {
 		1 - no print
 	*/
 
-	if(key == 10 || key == 13) {
-		String tmp = buffer;
+	if(key == 10) {
 		clearBuffer();
-		if(mode == 0) nextLine();
+		if(mode == 0) print(" \n");
 		return;
 	}
 	else if(key == 8) {
@@ -84,15 +91,17 @@ void Terminal::listen(char key, uint8_t mode) {
 		right();
 		return;
 	}
+	else if(key == 13) {
+		return;
+	}
 
 	if(mode == 0)
 		print(String(key));
 
 	String before = buffer.substring(0, buffer_len);
-	String after = String(key) + buffer.substring(buffer_len, buffer.length());
-	buffer = (before+after);
+	String after = buffer.substring(buffer_len, buffer.length());
+	buffer = (before+String(key)+after);
 	print(after, 2);
-	print("_", 1);
 	buffer_len++;
 }
 

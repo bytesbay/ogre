@@ -10,7 +10,6 @@ void setup() {
 	Terminal::print(" Hello.\n");
 	Terminal::print("<System error>", 0, 255, 0, 0);
 	Terminal::print(" SD card fail.\n");
-	delay(1000);
 }
 
 void loop() {

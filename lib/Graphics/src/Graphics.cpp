@@ -6,7 +6,7 @@ uint8_t Graphics::screen_size[2];
 
 void Graphics::begin(uint8_t TX, uint8_t RX) {
     GPU = new SoftwareSerial(TX, RX);
-    GPU->begin(115200);
+    GPU->begin(9600);
     waitResponce();
     setFont(1);
     setBackground(0, 0, 0);
@@ -80,10 +80,10 @@ void Graphics::getScreen (uint8_t value_id) {
 
             switch(value_id) {
                 case 0:
-                    font_size[0] = GPU->read();
+                    font_size[0] = GPU->read() - 2;
                     break;
                 case 1:
-                    font_size[1] = GPU->read();
+                    font_size[1] = GPU->read() - 2;
                     break;
                 case 2:
                     screen_size[0] = GPU->read();
@@ -103,7 +103,7 @@ void Graphics::waitResponce() {
 }
 
 void Graphics::updateValues() {
-    for(uint8_t i = 0; i < 2; i++) {
+    for(uint8_t i = 0; i < 4; i++) {
         getScreen(i);
     }
 }
