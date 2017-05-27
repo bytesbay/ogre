@@ -1,16 +1,25 @@
 #include "Core.h"
 
-Core::Core(Graphics * one, Terminal * two) {
-    GLU = one;
-    GUI = two;
+String Core::root;
+
+void Core::begin() {
+    SD.begin(4);
+    root = "/";
 }
 
-String Core::controller(uint8_t to, uint8_t data) {
-    String responce;
-    if(to == 1) {
-        responce = GUI->listen(data);
+void Core::script(String path) {
+    File file = SD.open(path);
+    if(file) {
+        while (file.available()) {
+            // Terminal::listen(file.read(), 1);
+        }
+        file.close();
+    } else {
+        // Terminal::print("[ ");
+        // Terminal::print("ERROR", 0, 255, 0, 0);
+        // Terminal::print(" ] ");
+        // Terminal::print("Couldn't open file.\n");
     }
-    return exec(responce);
 }
 
 String Core::exec(String input) {
@@ -53,7 +62,7 @@ String Core::exec(String input) {
 		}
 	}
 	if(num_of_opening_brackets != num_of_closing_brackets) {
-		return "Syntax error [brackets].";
+        return "Syntax error [brackets].\n";
 	}
 	for(uint8_t to_repeat = 0; to_repeat < num_of_opening_brackets; to_repeat++) {
 		for(uint8_t i = 0; tmp_command_val[status][i] != '\0'; i++) {
@@ -88,12 +97,12 @@ String Core::exec(String input) {
 
 	if(command.equals("scolor")) {
 		uint16_t *val_array = explode(command_val);
-		GLU->setColor(val_array[0], val_array[1], val_array[2]);
+		Graphics::setColor(val_array[0], val_array[1], val_array[2]);
 		delete[] val_array;
 	}
 	else if(command.equals("drect")) {
 		uint16_t *val_array = explode(command_val);
-		GLU->drawQuad(val_array[0], val_array[1], val_array[2], val_array[3]);
+		Graphics::drawQuad(val_array[0], val_array[1], val_array[2], val_array[3]);
 		delete[] val_array;
 	}
 	else if(command.equals("delay")) {
@@ -101,34 +110,68 @@ String Core::exec(String input) {
 		delay(val_array[0]);
 		delete[] val_array;
 	}
-	else if(command.equals("say")) {
+	else if(command.equals("echo")) {
 		output = command_val;
 	}
 	else if(command.equals("chfm")) {
 		output = String(freeMemory());
 	}
-	else if(command.equals("erase")) {
-		GUI->erase();
-	}
 	else if(command.equals("dline")) {
 		uint16_t *val_array = explode(command_val);
-		GLU->drawLine(val_array[0], val_array[1], val_array[2], val_array[3]);
+		Graphics::drawLine(val_array[0], val_array[1], val_array[2], val_array[3]);
 		delete[] val_array;
 	}
 	else if(command.equals("dpix")) {
 		uint16_t *val_array = explode(command_val);
-		GLU->drawPix(val_array[0], val_array[1]);
+		Graphics::drawPix(val_array[0], val_array[1]);
 		delete[] val_array;
 	}
 	else if(command.equals("sback")) {
 		uint16_t *val_array = explode(command_val);
-		GLU->setBackground(val_array[0], val_array[1], val_array[2]);
+		Graphics::setBackground(val_array[0], val_array[1], val_array[2]);
 		delete[] val_array;
 	}
 	else if(command.equals("sfont")) {
 		uint16_t *val_array = explode(command_val);
-		GLU->setFont(val_array[0]);
+		Graphics::setFont(val_array[0]);
 		delete[] val_array;
+	}
+    else if(command.equals("ls")) {
+        File dir = SD.open(root);
+        while (true) {
+            File entry = dir.openNextFile();
+            if (!entry) break;
+            if (entry.isDirectory()) {
+                //Terminal::print(entry.name(), 0, 255, 255, 0);
+            } else {
+                //Terminal::print(entry.name(), 0, 255, 0, 255);
+            }
+            entry.close();
+        }
+	}
+    else if(command.equals("cd")) {
+        if(command_val[0] != '/') {
+            root += '/' + command_val;
+        }
+        else if(command_val[0] != '.') {
+            command_val.remove(0);
+            root += command_val;
+        }
+        else {
+            root = command_val;
+        }
+	}
+    else if(command.equals("ipo")) {
+        if(command_val[0] != '/') {
+            script(root + '/' + command_val);
+        }
+        else if(command_val[0] != '.') {
+            command_val.remove(0);
+            script(root + command_val);
+        }
+        else {
+            script(command_val);
+        }
 	}
 	return output;
 }

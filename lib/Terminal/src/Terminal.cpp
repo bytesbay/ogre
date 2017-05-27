@@ -1,26 +1,29 @@
 #include "Terminal.h"
 
 String Terminal::buffer;
+uint8_t Terminal::pointer_len;
 uint8_t Terminal::buffer_len;
 uint8_t Terminal::grid[2];
 uint8_t Terminal::char_position[2];
 
 void Terminal::begin() {
 	grid[0] = (Graphics::screen_size[0] / Graphics::font_size[0]) - 1;
-	grid[1] = (Graphics::screen_size[1] / Graphics::font_size[1]) - 1;
+	grid[1] = (Graphics::screen_size[1] / Graphics::font_size[1]) - 2;
 	char_position[0] = 0;
 	char_position[1] = 0;
+	buffer_len = 0;
+	pointer_len = 0;
+	Graphics::setColor(255, 255, 255);
 }
 
-void Terminal::print(String str, uint8_t mode, uint8_t R, uint8_t G, uint8_t B) {
+void Terminal::print(String str, uint8_t mode) {
 
 	/*
 		0 - default increment
 		1 - no increment
 		2 - remember the position
 	*/
-
-	Graphics::setColor(R, G, B);
+	str.
 
 	uint8_t tmp[] = {
 		char_position[0],
@@ -28,6 +31,16 @@ void Terminal::print(String str, uint8_t mode, uint8_t R, uint8_t G, uint8_t B) 
 	};
 
 	for(uint8_t i = 0; str[i] != '\0'; i++) {
+
+		if(str[i] == '*' && str[i + 1] == '[' && str[i + 2] == '[') {
+			Graphics::setColor(str[i + 3], str[i + 4], str[i + 5]);
+			i += 8;
+		}
+		else if(str[i] == ']' && str[i+1] == ']' && str[i + 2] == '*') {
+			Graphics::setColor(255, 255, 255);
+			i += 2;
+			continue;
+		}
 
 		if(str[i] == '\n') {
 			nextLine();
@@ -55,8 +68,6 @@ void Terminal::print(String str, uint8_t mode, uint8_t R, uint8_t G, uint8_t B) 
 		char_position[1] = tmp[1];
 	}
 
-	Graphics::setColor(255, 255, 255);
-
 	if(mode != 2)
 		Graphics::drawQuad(
 			(char_position[0] * Graphics::font_size[0]) + 1,
@@ -67,6 +78,36 @@ void Terminal::print(String str, uint8_t mode, uint8_t R, uint8_t G, uint8_t B) 
 
 }
 
+void Terminal::print(char symbol, uint8_t mode) {
+
+	/*
+		0 - default increment
+		1 - no increment
+	*/
+
+	Graphics::printSymbol(
+		symbol,
+		char_position[0] * Graphics::font_size[0],
+		char_position[1] * Graphics::font_size[1]
+	);
+
+	if(char_position[1] > grid[1])
+		erase();
+
+	if(mode == 0)
+		char_position[0]++;
+
+	if(char_position[0] > grid[0])
+		nextLine();
+
+	Graphics::drawQuad(
+		(char_position[0] * Graphics::font_size[0]) + 1,
+		(char_position[1] * Graphics::font_size[1]),
+		((char_position[0] + 1) * Graphics::font_size[0]) - 1,
+		((char_position[1] + 1) * Graphics::font_size[1]) - 1
+	);
+}
+
 void Terminal::listen(char key, uint8_t mode) {
 
 	/*
@@ -75,8 +116,9 @@ void Terminal::listen(char key, uint8_t mode) {
 	*/
 
 	if(key == 10) {
-		clearBuffer();
 		if(mode == 0) print(" \n");
+		print(Core::exec(buffer));
+		clearBuffer();
 		return;
 	}
 	else if(key == 8) {
@@ -95,14 +137,19 @@ void Terminal::listen(char key, uint8_t mode) {
 		return;
 	}
 
-	if(mode == 0)
-		print(String(key));
+	if(buffer_len >= MAX_LEN)
+		return;
 
-	String before = buffer.substring(0, buffer_len);
-	String after = buffer.substring(buffer_len, buffer.length());
-	buffer = (before+String(key)+after);
-	print(after, 2);
+	if(mode == 0)
+		print(key);
+
+	String tmp = buffer.substring(0, pointer_len);
+	String after = buffer.substring(pointer_len, buffer_len);
+
+	buffer = ((tmp + key) + after);
+	pointer_len++;
 	buffer_len++;
+	print(after, 2);
 }
 
 void Terminal::prevLine() {
@@ -116,42 +163,48 @@ void Terminal::nextLine() {
 }
 
 void Terminal::right() {
-	if(buffer[buffer_len] != '\0') {
-		print(String(buffer[buffer_len]), 1);
-		buffer_len++;
-		char_position[0]++;
-		if(char_position[0] > grid[0])
-			nextLine();
-	}
+	if(pointer_len >= buffer_len)
+		return;
+
+	print(buffer[pointer_len], 1);
+	pointer_len++;
+	char_position[0]++;
+
+	if(char_position[0] > grid[0])
+		nextLine();
 }
 
 void Terminal::left() {
-	if(buffer_len > 0) {
-		if(buffer[buffer_len] != '\0')
-			print(String(buffer[buffer_len]), 1);
-		else
-			print(" ", 1);
-		buffer_len--;
-		char_position[0]--;
-		if(char_position[0] == 0)
-			prevLine();
-	}
+	if(pointer_len == 0)
+		return;
+
+	if(char_position[0] == 0)
+		prevLine();
+
+	if(pointer_len != buffer_len)
+		print(buffer[pointer_len], 1);
+	else
+		print(' ', 1);
+
+	pointer_len--;
+	char_position[0]--;
 }
 
 void Terminal::backspace() {
-	if(buffer_len == 0)
+	if(pointer_len == 0)
 		return;
-	buffer.remove(buffer_len-1);
+	buffer.remove(pointer_len-1);
 
-	if(buffer[buffer_len] != '\0')
-		print(String(buffer[buffer_len]), 1);
+	if(buffer[pointer_len] != '\0')
+		print(buffer[pointer_len], 1);
 	else
-		print(" ", 1);
+		print(' ', 1);
 
-	for(uint8_t i = buffer_len-1; buffer[i] != '\0'; i++)
-		print(String(buffer[i]));
+	for(uint8_t i = pointer_len-1; i <= buffer_len; i++)
+		print(buffer[i]);
 
 	left();
+	buffer_len--;
 }
 
 void Terminal::erase() {
@@ -163,5 +216,6 @@ void Terminal::erase() {
 
 void Terminal::clearBuffer() {
 	buffer = "";
+	pointer_len = 0;
 	buffer_len = 0;
 }

@@ -83,7 +83,7 @@ void Graphics::getScreen (uint8_t value_id) {
                     font_size[0] = GPU->read() - 2;
                     break;
                 case 1:
-                    font_size[1] = GPU->read() - 2;
+                    font_size[1] = GPU->read();
                     break;
                 case 2:
                     screen_size[0] = GPU->read();
