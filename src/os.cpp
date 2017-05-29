@@ -1,5 +1,3 @@
-#include <Arduino.h>
-#include <Graphics.h>
 #include <Terminal.h>
 #include <Core.h>
 
@@ -9,8 +7,9 @@ void setup() {
 	Core::begin();
 	Serial.begin(9600);
 
-	Terminal::print("[ *[[\x01\xFF\x00OK]]* ] SD connect.\n");
-	//Terminal::print("[ *[[\x38\x8C\xFFMSG]]* ] Welcome.\n");
+	if(SD.begin(4)) Terminal::print("[ <g>OK</> ] SD connect.\n");
+	else Terminal::print("[ <r>ERROR</> ] SD connect.\n");
+	Terminal::print("[ <b>MSG</> ] Welcome.\n");
 }
 
 void loop() {

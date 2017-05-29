@@ -23,7 +23,6 @@ void Terminal::print(String str, uint8_t mode) {
 		1 - no increment
 		2 - remember the position
 	*/
-	str.
 
 	uint8_t tmp[] = {
 		char_position[0],
@@ -32,11 +31,27 @@ void Terminal::print(String str, uint8_t mode) {
 
 	for(uint8_t i = 0; str[i] != '\0'; i++) {
 
-		if(str[i] == '*' && str[i + 1] == '[' && str[i + 2] == '[') {
-			Graphics::setColor(str[i + 3], str[i + 4], str[i + 5]);
-			i += 8;
+		if(str[i] == '<' && str[i + 1] != '/' && str[i + 2] == '>') {
+			char tag = str[i + 1];
+			if(tag == 'r') {
+				Graphics::setColor(216, 40, 40);
+			}
+			else if(tag == 'g') {
+				Graphics::setColor(91, 255, 80);
+			}
+			else if(tag == 'b') {
+				Graphics::setColor(56, 140, 255);
+			}
+			else if(tag == 'y') {
+				Graphics::setColor(240, 189, 68);
+			}
+			else if(tag == 'o') {
+				Graphics::setColor(217, 86, 51);
+			}
+			i += 2;
+			continue;
 		}
-		else if(str[i] == ']' && str[i+1] == ']' && str[i + 2] == '*') {
+		else if(str[i] == '<' && str[i+1] == '/' && str[i + 2] == '>') {
 			Graphics::setColor(255, 255, 255);
 			i += 2;
 			continue;

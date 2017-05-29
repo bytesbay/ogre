@@ -12,10 +12,13 @@ class Core {
 public:
 
     static String root;
+    static uint16_t * variables;
+    static uint8_t variables_num;
 
     static void begin();
     static String exec(String input);
-    static void script(String path);
+    static bool script(String path);
+    static void buzzer(uint8_t note, uint16_t sec);
 };
 
 #endif
