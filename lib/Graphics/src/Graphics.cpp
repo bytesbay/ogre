@@ -8,8 +8,6 @@ void Graphics::begin(uint8_t TX, uint8_t RX) {
     GPU = new SoftwareSerial(TX, RX);
     GPU->begin(9600);
     waitResponce();
-    setFont(1);
-    setBackground(0, 0, 0);
     updateValues();
 }
 
@@ -80,7 +78,7 @@ void Graphics::getScreen (uint8_t value_id) {
 
             switch(value_id) {
                 case 0:
-                    font_size[0] = GPU->read() - 2;
+                    font_size[0] = GPU->read() - 1;
                     break;
                 case 1:
                     font_size[1] = GPU->read();

@@ -115,12 +115,12 @@ void Terminal::print(char symbol, uint8_t mode) {
 	if(char_position[0] > grid[0])
 		nextLine();
 
-	Graphics::drawQuad(
-		(char_position[0] * Graphics::font_size[0]) + 1,
-		(char_position[1] * Graphics::font_size[1]),
-		((char_position[0] + 1) * Graphics::font_size[0]) - 1,
-		((char_position[1] + 1) * Graphics::font_size[1]) - 1
-	);
+	// Graphics::drawQuad(
+	// 	(char_position[0] * Graphics::font_size[0]) + 1,
+	// 	(char_position[1] * Graphics::font_size[1]),
+	// 	((char_position[0] + 1) * Graphics::font_size[0]) - 1,
+	// 	((char_position[1] + 1) * Graphics::font_size[1]) - 1
+	// );
 }
 
 void Terminal::listen(char key, uint8_t mode) {
